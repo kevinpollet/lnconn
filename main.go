@@ -15,9 +15,9 @@ func main() {
 	}
 	defer l.Close()
 
-	handler := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = io.WriteString(rw, "Hello")
-	})
+	handler := func(rw http.ResponseWriter, req *http.Request) {
+		io.WriteString(rw, "Hello")
+	}
 
 	for {
 		conn, err := l.Accept()
@@ -25,7 +25,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		go serveHTTP(conn, handler)
+		go serveHTTP(conn, http.HandlerFunc(handler))
 	}
 }
 
