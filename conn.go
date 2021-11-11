@@ -5,12 +5,12 @@ import "net"
 type connCloser struct {
 	net.Conn
 
-	ln net.Listener
+	listener net.Listener
 }
 
 func (c connCloser) Close() error {
-	defer func() {
-		_ = c.ln.Close() // Always return nil error.
-	}()
+	// Always return a nil error.
+	defer c.listener.Close()
+
 	return c.Conn.Close()
 }

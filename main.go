@@ -9,28 +9,30 @@ import (
 )
 
 func main() {
-	ln, err := net.Listen("tcp", ":80")
+	l, err := net.Listen("tcp", ":80")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() { _ = ln.Close() }()
+	defer l.Close()
 
 	handler := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		_, _ = io.WriteString(rw, "Hello")
 	})
 
 	for {
-		conn, err := ln.Accept()
+		conn, err := l.Accept()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		go func() {
-			err := http.Serve(NewSingleConnListener(conn), handler)
-			if err != nil && !errors.Is(err, io.EOF) {
-				log.Println(err)
-				return
-			}
-		}()
+		go serveHTTP(conn, handler)
+	}
+}
+
+func serveHTTP(conn net.Conn, handler http.Handler) {
+	err := http.Serve(NewSingleConnListener(conn), handler)
+	if err != nil && !errors.Is(err, ListenerClosedError{}) {
+		log.Println(err)
+		return
 	}
 }
